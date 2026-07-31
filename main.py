@@ -3,7 +3,7 @@ import pandas as pd
 from pydantic import BaseModel, Field
 import joblib
 from fastapi.middleware.cors import CORSMiddleware
-
+from datetime import datetime, timezone
 
 app = FastAPI()
 
@@ -36,11 +36,27 @@ class Features(BaseModel):
     neighbourhood: str = Field(..., min_length=1, description="Specific neighbourhood name")
 
 
-
+ 
 @app.get('/')
-def greet():
-    return "Hello Guyss"
-
+def root():
+    return {
+        "message": "Welcome to the NYC Airbnb Room Type Classification API",
+        "version": "1.0.0",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health"
+    }
+ 
+ 
+@app.get('/health')
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "NYC Airbnb Room Type Classification API",
+        "model_loaded": model is not None,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+ 
 
 @app.post('/predict')
 def predict(features: Features):
