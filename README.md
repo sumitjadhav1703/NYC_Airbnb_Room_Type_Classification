@@ -21,8 +21,8 @@
 | 🏠 Home View | 📊 Prediction Results |
 | :---: | :---: |
 | <img src="docs/screenshots/home.png" alt="Home Page Screenshot" width="400"/> | <img src="docs/screenshots/prediction-result.png" alt="Prediction Result Screenshot" width="400"/> |
-| **Mobile View** | **Prediction Form** |
-| <img src="docs/screenshots/mobile-view.png" alt="Mobile View Screenshot" width="400"/> | <img src="docs/screenshots/prediction-page.png" alt="Prediction Page Screenshot" width="400"/> |
+| | **Prediction Form** |
+| | <img src="docs/screenshots/prediction-page.png" alt="Prediction Page Screenshot" width="400"/> |
 
 ---
 
