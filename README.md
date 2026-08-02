@@ -16,13 +16,17 @@
 
 <br>
 
-## 📸 Screenshots
+## 📸 Application Preview
 
-| 🏠 Home View | 📊 Prediction Results |
-| :---: | :---: |
-| <img src="docs/screenshots/home.png" alt="Home Page Screenshot" width="400"/> | <img src="docs/screenshots/prediction-result.png" alt="Prediction Result Screenshot" width="400"/> |
-| | **Prediction Form** |
-| | <img src="docs/screenshots/prediction-page.png" alt="Prediction Page Screenshot" width="400"/> |
+<div align="center">
+
+<img src="docs/screenshots/home.png"
+     alt="NYC Airbnb Room Type Classification"
+     width="100%" />
+
+*Homepage of the NYC Airbnb Room Type Classification web application.*
+
+</div>
 
 ---
 
