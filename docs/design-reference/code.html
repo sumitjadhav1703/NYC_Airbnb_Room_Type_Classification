@@ -1,0 +1,1730 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Room Type Predictor · Resume Edition</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-secondary-container": "#9abcd9",
+                "on-background": "#e5e2e1",
+                "primary-fixed-dim": "#c6c6c7",
+                "on-primary-fixed": "#1a1c1c",
+                "background": "transparent",
+                "surface-variant": "#353434",
+                "on-primary": "#2f3131",
+                "inverse-surface": "#e5e2e1",
+                "primary-container": "#e2e2e2",
+                "secondary-container": "#2a4c65",
+                "on-tertiary-fixed": "#1a1c1c",
+                "surface": "rgba(20, 19, 19, 0.5)",
+                "on-tertiary-fixed-variant": "#454747",
+                "on-surface-variant": "#c4c7c8",
+                "on-error": "#690005",
+                "outline-variant": "#444748",
+                "on-secondary-fixed-variant": "#274a62",
+                "outline": "#8e9192",
+                "tertiary": "#ffffff",
+                "secondary": "#a8cbe8",
+                "surface-container-highest": "#353434",
+                "inverse-on-surface": "#313030",
+                "surface-tint": "#c6c6c7",
+                "error": "#ffb4ab",
+                "surface-container-low": "#1c1b1b",
+                "surface-container-high": "#2a2a2a",
+                "surface-container": "rgba(32, 31, 31, 0.4)",
+                "tertiary-fixed": "#e2e2e2",
+                "surface-container-lowest": "#0e0e0e",
+                "secondary-fixed-dim": "#a8cbe8",
+                "on-primary-container": "#636565",
+                "error-container": "#93000a",
+                "primary-fixed": "#e2e2e2",
+                "on-secondary": "#0c334b",
+                "on-secondary-fixed": "#001e2f",
+                "secondary-fixed": "#cae6ff",
+                "on-tertiary-container": "#636565",
+                "surface-bright": "#3a3939",
+                "on-surface": "#ffffff",
+                "tertiary-container": "#e2e2e2",
+                "surface-dim": "#141313",
+                "on-primary-fixed-variant": "#454747",
+                "on-tertiary": "#2f3131",
+                "inverse-primary": "#5d5f5f",
+                "primary": "#ffffff",
+                "on-error-container": "#ffdad6",
+                "tertiary-fixed-dim": "#c6c6c7"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "margin-desktop": "64px",
+                "unit": "4px",
+                "margin-mobile": "20px",
+                "container-max": "1200px",
+                "gutter": "24px"
+        },
+        "fontFamily": {
+                "body-md": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ],
+                "display-lg-mobile": [
+                        "Instrument Serif"
+                ],
+                "label-caps": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Instrument Serif"
+                ],
+                "display-lg": [
+                        "Instrument Serif"
+                ],
+                "headline-sm": [
+                        "Instrument Serif"
+                ]
+        },
+        "fontSize": {
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "1.6",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-lg-mobile": [
+                        "48px",
+                        {
+                                "lineHeight": "1.1",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-caps": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "0.1em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "40px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-lg": [
+                        "72px",
+                        {
+                                "lineHeight": "1.1",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-sm": [
+                        "32px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+  body {
+    background-color: theme('colors.background');
+    color: theme('colors.on-surface');
+    font-family: theme('fontFamily.body-md');
+  }
+  
+  #glcanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    mix-blend-mode: screen;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  
+  /* Glassmorphism utility */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.01);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+    border-radius: 1.5rem;
+  }
+  
+  /* Forms */
+  input[type="number"], input[type="text"], select {
+    @apply w-full bg-surface-container-high border border-outline-variant/30 rounded text-on-surface p-2 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+  }
+  
+  label {
+    @apply block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase;
+  }
+  
+  legend {
+    @apply font-headline-md text-headline-md text-primary mb-6;
+  }
+  
+  fieldset {
+    @apply mb-8 pb-8 border-b border-outline-variant/20;
+  }
+  
+  /* Buttons */
+  .btn-primary {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+    border-radius: 9999px;
+    color: white;
+    font-family: theme('fontFamily.label-caps');
+    font-size: theme('fontSize.label-caps');
+    padding: 0.75rem 1.5rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+  }
+  .btn-primary:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.01);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    color: white;
+    font-family: theme('fontFamily.label-caps');
+    font-size: theme('fontSize.label-caps');
+    padding: 0.5rem 1rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    text-transform: uppercase;
+  }
+  .btn-ghost:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  
+  /* Range Slider */
+  input[type=range] {
+    @apply w-full h-2 bg-surface-container-high rounded-lg appearance-none cursor-pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 rounded-full bg-primary shadow cursor-pointer hover:scale-110 transition-transform;
+  }
+  
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fade-up {
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  
+  /* Building graphics */
+  .building-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    height: 180px;
+    justify-content: flex-end;
+  }
+  .building {
+    width: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    border-radius: 2px 2px 0 0;
+    height: var(--h, 18%);
+    transition: height 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    padding: 4px;
+    gap: 4px;
+    position: relative;
+    border: 1px solid theme('colors.outline-variant');
+    border-bottom: none;
+  }
+  .building::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: theme('colors.primary-container');
+    opacity: 0.5;
+  }
+  .win {
+    width: calc(50% - 2px);
+    aspect-ratio: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1px;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  .win.lit {
+    background: theme('colors.primary-container');
+    box-shadow: 0 0 8px theme('colors.primary-container');
+  }
+  .building-caption {
+    font-family: theme('fontFamily.label-caps');
+    font-size: theme('fontSize.label-caps');
+    color: theme('colors.on-surface-variant');
+    text-align: center;
+    max-width: 80px;
+    text-transform: uppercase;
+  }
+  
+  .prob-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 7px;
+    font-family: theme('fontFamily.label-caps');
+    font-size: theme('fontSize.label-caps');
+    text-transform: uppercase;
+  }
+  .prob-row .name { flex: 1; color: theme('colors.on-surface'); }
+  .prob-row .value { width: 3em; text-align: right; color: theme('colors.primary'); }
+  .prob-row .prob-track {
+    flex: 2;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .prob-row .prob-fill {
+    height: 100%;
+    background: theme('colors.primary');
+    width: 0%;
+    transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .prob-row.top .name { color: theme('colors.primary'); font-weight: bold; }
+  
+  .api-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: theme('fontFamily.label-caps');
+    font-size: theme('fontSize.label-caps');
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    text-transform: uppercase;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: theme('colors.on-surface-variant');
+  }
+  .api-status.online .status-dot { background: theme('colors.secondary'); box-shadow: 0 0 6px theme('colors.secondary'); }
+  .api-status.offline .status-dot { background: theme('colors.error'); box-shadow: 0 0 6px theme('colors.error'); }
+
+  /* Build Line Guide Styles */
+  .build-line-section {
+    position: relative;
+    margin-top: 120px;
+    padding-top: 80px;
+    border-top: 1px solid theme('colors.outline-variant/30');
+  }
+  
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.15;
+    background-image:
+      linear-gradient(theme('colors.on-surface-variant/20') 1px, transparent 1px),
+      linear-gradient(90deg, theme('colors.on-surface-variant/20') 1px, transparent 1px);
+    background-size: 46px 46px;
+    animation: drift 26s linear infinite;
+  }
+  @keyframes drift{
+    from{background-position:0 0, 0 0;}
+    to{background-position:46px 46px, -46px 46px;}
+  }
+
+  .build-line-content {
+    position: relative;
+    z-index: 10;
+  }
+
+  .linemap-wrap{
+    position:sticky;
+    top:64px;
+    z-index:50;
+    background:rgba(20, 19, 19, 0.4);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    padding:18px 0 14px;
+    margin-top:30px;
+  }
+  .linemap{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 24px;
+    position:relative;
+  }
+  .track{
+    position:relative;
+    height:6px;
+    background:rgba(255, 255, 255, 0.1);
+    border-radius:3px;
+    margin:0 8px;
+  }
+  .track-fill{
+    position:absolute;
+    top:0; left:0;
+    height:100%;
+    border-radius:3px;
+    background:linear-gradient(90deg, theme('colors.secondary'), theme('colors.primary'), theme('colors.secondary'));
+    width:0%;
+    transition:width .55s cubic-bezier(.65,0,.35,1);
+    overflow:hidden;
+  }
+  .track-fill::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    width:40%;
+    animation:shimmer 1.8s ease-in-out infinite;
+  }
+  @keyframes shimmer{
+    0%{transform:translateX(-120%);}
+    100%{transform:translateX(280%);}
+  }
+  .train{
+    position:absolute;
+    top:50%;
+    left:0%;
+    transform:translate(-50%,-50%);
+    font-size:1.4rem;
+    transition:left .55s cubic-bezier(.65,0,.35,1);
+    filter:drop-shadow(0 0 6px theme('colors.primary'));
+    animation:chug 1.1s ease-in-out infinite;
+  }
+  @keyframes chug{
+    0%,100%{transform:translate(-50%,-50%) rotate(-3deg) translateY(0);}
+    50%{transform:translate(-50%,-50%) rotate(3deg) translateY(-2px);}
+  }
+  .puff{
+    position:absolute;
+    top:50%;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:theme('colors.primary/50');
+    pointer-events:none;
+    animation:puff-out .6s ease-out forwards;
+  }
+  @keyframes puff-out{
+    from{opacity:0.7; transform:translate(-50%,-50%) scale(0.6);}
+    to{opacity:0; transform:translate(-50%,-180%) scale(2.2);}
+  }
+  .stations{
+    display:flex;
+    justify-content:space-between;
+    margin-top:-3px;
+    position:relative;
+  }
+  .station{
+    background:none;
+    border:none;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    padding:6px;
+    flex:1;
+    color:theme('colors.on-surface-variant');
+    font-family:theme('fontFamily.label-caps');
+  }
+  .station .dot{
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:rgba(255, 255, 255, 0.1);
+    border:2px solid theme('colors.outline-variant');
+    transition:all .25s ease;
+  }
+  .station .label{
+    font-size:theme('fontSize.label-caps');
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:600;
+    text-align:center;
+    transition:color .25s ease;
+  }
+  .station.done .dot{background:theme('colors.primary'); border-color:theme('colors.primary'); transform:scale(1);}
+  .station.active .dot{
+    background:theme('colors.primary');
+    border-color:theme('colors.primary');
+    box-shadow:0 0 0 5px theme('colors.primary/20');
+    position:relative;
+    animation:dot-pop .35s ease;
+  }
+  .station.active .dot::after{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    border-radius:50%;
+    border:2px solid theme('colors.primary');
+    animation:ring-pulse 1.6s ease-out infinite;
+  }
+  @keyframes ring-pulse{
+    0%{transform:scale(1); opacity:0.9;}
+    100%{transform:scale(2.6); opacity:0;}
+  }
+  @keyframes dot-pop{
+    0%{transform:scale(0.6);}
+    60%{transform:scale(1.25);}
+    100%{transform:scale(1);}
+  }
+  .station.active .label{color:theme('colors.on-surface');}
+  .station:hover .dot{transform:scale(1.2);}
+  .station:hover .label{color:theme('colors.on-surface');}
+
+  .stage{
+    max-width:720px;
+    margin:44px auto 40px;
+    padding:0 24px;
+  }
+  .stop-card{
+    display:none;
+    animation:rise .45s ease both;
+  }
+  .stop-card.active{display:block;}
+  @keyframes rise{
+    from{opacity:0; transform:translateY(18px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .stop-head{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:6px;
+  }
+  .stop-num{
+    font-family: theme('fontFamily.label-caps');
+    font-size: theme('fontSize.label-caps');
+    font-weight:600;
+    letter-spacing:0.1em;
+    padding:6px 12px;
+    border-radius:999px;
+    color:theme('colors.surface');
+    white-space:nowrap;
+    animation:pop-in .4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes pop-in{
+    from{opacity:0; transform:scale(0.7);}
+    to{opacity:1; transform:scale(1);}
+  }
+  .stop-line{
+    font-family: theme('fontFamily.label-caps');
+    font-size: theme('fontSize.label-caps');
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:theme('colors.on-surface-variant');
+  }
+  .stop-title{
+    font-family: theme('fontFamily.headline-sm');
+    font-size:theme('fontSize.headline-sm');
+    font-weight:400;
+    margin:10px 0 6px;
+    color: theme('colors.primary');
+  }
+  .stop-title .icon-float{
+    display:inline-block;
+    animation:float-icon 2.6s ease-in-out infinite;
+  }
+  @keyframes float-icon{
+    0%,100%{transform:translateY(0) rotate(0deg);}
+    50%{transform:translateY(-6px) rotate(-6deg);}
+  }
+  .stop-tagline{
+    color:theme('colors.on-surface-variant');
+    font-family: theme('fontFamily.body-lg');
+    font-size: theme('fontSize.body-lg');
+    margin:0 0 30px;
+    max-width:560px;
+  }
+
+  .checklist{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .checklist li{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    background:rgba(255, 255, 255, 0.03);
+    border:1px solid rgba(255, 255, 255, 0.1);
+    border-radius:8px;
+    padding:16px;
+    cursor:pointer;
+    opacity:0;
+    transform:translateX(-10px);
+    animation:slide-in .4s ease forwards;
+    transition:background .2s ease, border-color .2s ease, transform .15s ease, box-shadow .2s ease;
+    user-select:none;
+    position:relative;
+    overflow:hidden;
+  }
+  .checklist li:hover{background:rgba(255, 255, 255, 0.08); transform:translateX(2px);}
+  .checklist li:active{transform:scale(0.99);}
+  .checklist li.checked{
+    border-color:theme('colors.primary/40');
+    animation:check-pop .32s ease;
+    opacity:1;
+    transform:translateX(0);
+  }
+  @keyframes check-pop{
+    0%{transform:scale(1);}
+    35%{transform:scale(1.015);}
+    100%{transform:scale(1);}
+  }
+  .checklist li.checked{box-shadow:0 0 0 1px theme('colors.primary/15'), 0 6px 16px -8px theme('colors.primary/30');}
+  .checklist li.checked .text{
+    color:theme('colors.on-surface-variant');
+    text-decoration:line-through;
+    text-decoration-color:theme('colors.on-surface-variant/50');
+  }
+  .check-box{
+    flex:none;
+    width:22px;
+    height:22px;
+    border-radius:4px;
+    border:2px solid theme('colors.outline-variant');
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .18s ease;
+    margin-top:1px;
+    position:relative;
+  }
+  .check-box svg{
+    width:13px; height:13px;
+    stroke:theme('colors.surface');
+    stroke-width:3.5;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:20;
+    stroke-dashoffset:20;
+  }
+  .checklist li.checked .check-box{
+    background:theme('colors.primary');
+    border-color:theme('colors.primary');
+    transform:scale(1.08) rotate(-4deg);
+  }
+  .checklist li.checked .check-box svg{
+    animation:draw-check .3s ease .05s forwards;
+  }
+  @keyframes draw-check{
+    to{stroke-dashoffset:0;}
+  }
+  .text{font-family: theme('fontFamily.body-md'); font-size:theme('fontSize.body-md'); line-height:1.5;}
+
+  @keyframes slide-in{
+    to{opacity:1; transform:translateX(0);}
+  }
+
+  .aside-note{
+    margin-top:22px;
+    padding:16px;
+    border-left:3px solid theme('colors.secondary');
+    background:theme('colors.secondary/10');
+    border-radius:0 8px 8px 0;
+    font-family: theme('fontFamily.body-md');
+    font-size:theme('fontSize.body-md');
+    color:theme('colors.on-surface');
+    line-height:1.55;
+    display:none;
+  }
+  .aside-note.show{display:block;}
+
+  .progress-pill{
+    margin-top:26px;
+    font-family: theme('fontFamily.label-caps');
+    font-size:theme('fontSize.label-caps');
+    color:theme('colors.on-surface-variant');
+    letter-spacing:0.1em;
+    text-transform: uppercase;
+  }
+  .progress-pill b{color:theme('colors.primary');}
+
+  .stage-nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:38px;
+    gap:12px;
+  }
+
+  .terminus{
+    display:none;
+    max-width:760px;
+    margin:0 auto 60px;
+    padding:0 24px;
+    text-align:center;
+    animation:rise .5s ease both;
+  }
+  .terminus.active{display:block;}
+  .terminus h2{
+    font-family: theme('fontFamily.headline-md');
+    font-size:theme('fontSize.headline-md');
+    margin:0 0 10px;
+    color: theme('colors.primary');
+    animation:trophy-bounce .7s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes trophy-bounce{
+    0%{opacity:0; transform:translateY(-16px) scale(0.8);}
+    60%{opacity:1; transform:translateY(4px) scale(1.06);}
+    100%{transform:translateY(0) scale(1);}
+  }
+  .terminus p.sub{color:theme('colors.on-surface-variant'); font-family: theme('fontFamily.body-lg'); margin:0 0 34px; font-size:theme('fontSize.body-lg');}
+  .recap-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
+    margin-bottom:32px;
+  }
+  .recap-item{
+    padding:16px 8px;
+    border-radius:8px;
+    background:rgba(255, 255, 255, 0.05);
+    border:1px solid rgba(255, 255, 255, 0.1);
+    border-top:3px solid var(--stop-color, theme('colors.primary'));
+  }
+  .recap-item .ic{font-size:24px; margin-bottom:8px;}
+  .recap-item .t{font-family: theme('fontFamily.label-caps'); font-size:theme('fontSize.label-caps'); text-transform: uppercase; letter-spacing:0.1em; color: theme('colors.on-surface');}
+  
+  .shader-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.15;
+      pointer-events: none;
+  }
+</style>
+</head>
+<body class="antialiased min-h-screen flex flex-col text-on-surface bg-background">
+<video autoplay="" class="fixed inset-0 w-full h-full object-cover z-[-2]" loop="" muted="" playsinline="">
+<source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4" type="video/mp4">
+</video>
+<canvas height="1024" id="glcanvas" width="1280"></canvas>
+<!-- TopAppBar -->
+<nav class="flex justify-between items-center px-gutter h-16 w-full z-50 glass-panel !border-0 !border-b !border-outline-variant/30 shadow-sm fixed top-0 !rounded-none">
+<div class="flex items-center gap-3">
+<div class="font-headline-md text-headline-md font-bold text-primary tracking-tight">NYC Predictor</div>
+
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+</div>
+</nav>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar -->
+<main class="flex-1 p-margin-mobile lg:p-margin-desktop overflow-y-auto mx-auto max-w-6xl w-full">
+<header class="mb-24 text-center max-w-2xl mx-auto opacity-0 animate-fade-up">
+<p class="font-label-caps text-label-caps text-secondary mb-4 tracking-widest uppercase">NYC Airbnb <span class="mx-2 opacity-50">·</span> Room Type Predictor</p>
+<h1 class="font-display-lg-mobile md:font-display-lg text-primary mb-6">What kind of stay<br>is this listing?</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-lg mx-auto text-on-surface mb-4">Enter a listing's details and the model will predict whether it's an
+        entire home, a private room, or a shared room — the way the city lights up differently
+        behind each kind of door.</p>
+<div class="group relative inline-block">
+<div class="glass-panel !rounded-full text-primary text-xs font-label-caps px-4 py-2 cursor-help flex items-center gap-2 shadow-sm hover:bg-white/5 transition-colors uppercase">
+<span class="material-symbols-outlined text-[16px]">integration_instructions</span> Technical Overview
+  </div>
+<div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max max-w-sm p-4 glass-panel text-left opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 text-xs font-body-md text-on-surface shadow-xl">
+<strong class="text-primary block mb-2 font-label-caps tracking-widest uppercase">Tech Stack</strong>
+<ul class="flex flex-col gap-2">
+<li class=""><strong class="text-on-surface">Backend:</strong> FastAPI, Scikit-learn (Random Forest)</li>
+<li class=""><strong class="text-on-surface">Frontend:</strong> HTML/JS, Tailwind CSS, Glassmorphism UI</li>
+<li class=""><strong class="text-on-surface">Graphics:</strong> Custom WebGL Fragment Shader</li>
+</ul>
+</div>
+</div>
+</header>
+<div class="grid lg:grid-cols-12 gap-gutter max-w-6xl mx-auto">
+<!-- FORM PANEL -->
+<section aria-labelledby="formTitle" class="lg:col-span-7 glass-panel p-6 lg:p-8 opacity-0 animate-fade-up stagger-1">
+<div class="flex justify-between items-center mb-8">
+<h2 class="font-headline-md text-headline-md text-primary" id="formTitle">Listing details</h2>
+<button class="btn-ghost" id="exampleBtn" type="button">Try an example</button>
+</div>
+<form class="flex flex-col gap-6" id="predictForm" novalidate="">
+<fieldset>
+<legend class="">Location</legend>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<label class="text-primary" for="latitude">Latitude</label>
+<input id="latitude" max="90" min="-90" name="latitude" placeholder="40.7128" required="" step="0.000001" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+<div>
+<label class="text-primary" for="longitude">Longitude</label>
+<input id="longitude" max="180" min="-180" name="longitude" placeholder="-74.0060" required="" step="0.000001" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="text-primary" for="neighbourhood_group">Borough</label>
+<select id="neighbourhood_group" name="neighbourhood_group" required="" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+<option disabled="" selected="" value="">Choose a borough</option>
+<option value="Manhattan">Manhattan</option>
+<option value="Brooklyn">Brooklyn</option>
+<option value="Queens">Queens</option>
+<option value="Bronx">Bronx</option>
+<option value="Staten Island">Staten Island</option>
+</select>
+</div>
+<div>
+<label class="text-primary" for="neighbourhood">Neighbourhood</label>
+<input id="neighbourhood" name="neighbourhood" placeholder="e.g. Williamsburg" required="" type="text" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+</fieldset>
+<fieldset>
+<legend class="">Pricing &amp; stay</legend>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<label class="text-primary" for="price">Price (USD)</label>
+<input id="price" min="1" name="price" placeholder="150" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+<div>
+<label class="text-primary" for="minimum_nights">Min nights</label>
+<input id="minimum_nights" max="365" min="1" name="minimum_nights" placeholder="3" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+<div>
+<label class="flex text-primary gap-2" for="availability_365">
+<span class="">Days available</span>
+<span class="text-primary"><span class="" id="availabilityValue">84</span> / 365</span>
+</label>
+<input class="mt-2" id="availability_365" max="365" min="0" name="availability_365" required="" step="1" type="range" value="180">
+</div>
+</fieldset>
+<fieldset class="border-b-0 mb-0 pb-0">
+<legend class="">Reviews &amp; host</legend>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<label class="text-primary" for="number_of_reviews">Total reviews</label>
+<input id="number_of_reviews" min="0" name="number_of_reviews" placeholder="24" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+<div>
+<label class="text-primary" for="reviews_per_month">Reviews/month</label>
+<input id="reviews_per_month" min="0" name="reviews_per_month" placeholder="1.2" required="" step="0.01" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+<div>
+<label class="text-primary" for="calculated_host_listings_count">Host listings</label>
+<input id="calculated_host_listings_count" min="0" name="calculated_host_listings_count" placeholder="1" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</fieldset>
+<div class="mt-4">
+<button class="btn-primary w-full" id="predictBtn" type="submit">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+<span class="">Predict room type</span>
+</button>
+<p class="text-error font-body-md text-sm mt-2 text-center h-4" id="formError" role="alert"></p>
+</div>
+</form>
+</section>
+<!-- RESULT PANEL -->
+<section aria-labelledby="resultTitle" aria-live="polite" class="lg:col-span-5 glass-panel p-6 lg:p-8 opacity-0 animate-fade-up stagger-2 flex flex-col">
+<div class="flex justify-between items-center mb-12">
+<h2 class="font-headline-md text-headline-md text-primary" id="resultTitle">Prediction</h2>
+<span class="api-status online text-on-surface" id="apiStatus"><span class="status-dot"></span>API connected</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center text-center text-on-surface-variant p-6" id="resultEmpty">
+<span class="material-symbols-outlined text-4xl mb-4 opacity-50">location_city</span>
+<p class="font-body-md text-on-surface">Fill in the listing details and predict to see the city light up.</p>
+</div>
+<div class="flex-1 flex flex-col" hidden="" id="resultContent">
+<div class="text-center mb-8">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest block mb-2">Most likely</span>
+<span class="font-display-lg-mobile text-primary block" id="predictedName">—</span>
+</div>
+<div class="flex justify-center gap-4 mb-10 h-[200px]" id="buildingsRow">
+<!-- built by JS -->
+</div>
+<div class="glass-panel !rounded-lg p-4 mb-4" id="probList">
+<!-- built by JS -->
+</div>
+<!-- View Technical Details Toggle -->
+<div class="mt-auto text-center">
+<button class="btn-ghost text-xs py-1 px-3 w-full" id="toggleDetailsBtn" type="button">View Technical Details</button>
+<div class="hidden mt-4 glass-panel p-4 text-left text-xs font-body-md text-on-surface-variant" id="techDetailsPanel">
+<p class="mb-2"><strong class="text-primary font-medium">Probability Distribution Logic:</strong> The underlying ML model processes location coords, pricing, availability, and host metrics via a pre-trained pipeline. The output probabilities represent the model's confidence for each class.</p>
+<p class=""><strong class="text-primary font-medium">Visual Mapping:</strong> The WebGL visualizer dynamically updates window light activation based on <code>prob * total_windows</code>, providing a 1:1 mapping of backend confidence to visual density.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- BUILD LINE SECTION -->
+</main>
+</div>
+<!-- WebGL Background for main page -->
+<script>
+  const canvas = document.getElementById('glcanvas');
+  const gl = canvas.getContext('webgl');
+
+  if (!gl) {
+    console.error('WebGL not supported');
+  }
+
+  const vsSource = `
+    attribute vec4 aVertexPosition;
+    varying vec2 v_texCoord;
+    void main() {
+      gl_Position = aVertexPosition;
+      v_texCoord = aVertexPosition.xy * 0.5 + 0.5;
+    }
+  `;
+
+  const fsSource = `{{DATA:ANIMATION:ANIMATION_1}}`;
+
+  function initShaderProgram(gl, vsSource, fsSource) {
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+      console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+      return null;
+    }
+    return shaderProgram;
+  }
+
+  function loadShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+
+  const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+  const programInfo = {
+    program: shaderProgram,
+    attribLocations: {
+      vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+    },
+    uniformLocations: {
+      u_time: gl.getUniformLocation(shaderProgram, 'u_time'),
+      u_resolution: gl.getUniformLocation(shaderProgram, 'u_resolution'),
+      u_mouse: gl.getUniformLocation(shaderProgram, 'u_mouse'),
+    },
+  };
+
+  const positions = [
+     1.0,  1.0,
+    -1.0,  1.0,
+     1.0, -1.0,
+    -1.0, -1.0,
+  ];
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+  let mouseX = 0;
+  let mouseY = 0;
+  
+  window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      // Invert Y for WebGL coordinates
+      mouseY = window.innerHeight - e.clientY;
+  });
+
+  function resizeCanvasToDisplaySize(canvas) {
+    const displayWidth  = canvas.clientWidth;
+    const displayHeight = canvas.clientHeight;
+    if (canvas.width  !== displayWidth || canvas.height !== displayHeight) {
+      canvas.width  = displayWidth;
+      canvas.height = displayHeight;
+    }
+  }
+
+  function renderGl(time) {
+    resizeCanvasToDisplaySize(gl.canvas);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    if (programInfo.program) {
+      gl.useProgram(programInfo.program);
+      
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 2, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+      gl.uniform1f(programInfo.uniformLocations.u_time, time * 0.001);
+      gl.uniform2f(programInfo.uniformLocations.u_resolution, gl.canvas.width, gl.canvas.height);
+      
+      if (mouseX === 0 && mouseY === 0) {
+          gl.uniform2f(programInfo.uniformLocations.u_mouse, gl.canvas.width/2, gl.canvas.height/2);
+      } else {
+          gl.uniform2f(programInfo.uniformLocations.u_mouse, mouseX, mouseY);
+      }
+
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    requestAnimationFrame(renderGl);
+  }
+  requestAnimationFrame(renderGl);
+</script>
+<!-- Shader for Build Line Section -->
+<script>
+(function() {
+  const canvas = document.getElementById('buildLineShaderCanvas');
+  if(!canvas) return;
+
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+
+float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    vec3 color = vec3(0.0);
+    
+    // Scanning Pulse Line
+    float scan = smoothstep(0.1, 0.0, abs(fract(uv.y * 0.5 - u_time * 0.1) - 0.5));
+    color += vec3(0.66, 0.8, 0.91) * scan * 0.1; // Secondary color
+
+    // Data points (Blinking lights)
+    for(int i = 0; i < 12; i++) {
+        float fi = float(i);
+        float t = u_time * (0.2 + fi * 0.02);
+        vec2 pos = vec2(
+            hash(vec2(fi, 13.0)),
+            hash(vec2(fi, 17.0))
+        );
+        
+        float dist = distance(uv, pos);
+        float blink = step(0.6, sin(t * 3.0 + fi));
+        float glow = 0.001 / pow(dist, 1.5);
+        
+        vec3 glowCol = (mod(fi, 3.0) == 0.0) ? vec3(1.0, 1.0, 1.0) : vec3(0.66, 0.8, 0.91); // Primary / Secondary
+        color += glowCol * glow * blink * 0.5;
+    }
+    
+    gl_FragColor = vec4(color, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+<!-- Main Logic -->
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const API_BASE_URL = "https://nyc-airbnb-room-type-predictor.onrender.com";
+const PREDICT_ENDPOINT = `${API_BASE_URL}/predict`;
+const HEALTH_ENDPOINT = `${API_BASE_URL}/`;
+
+const REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const ROOM_CLASSES = [
+  { key: "Entire home/apt", label: "Entire home", rows: 6, cols: 2, height: "100%" },
+  { key: "Private room", label: "Private room", rows: 4, cols: 2, height: "68%" },
+  { key: "Shared room", label: "Shared room", rows: 2, cols: 2, height: "42%" },
+];
+
+const EXAMPLES = [
+  {
+    latitude: 40.7484, longitude: -73.9857, price: 120, minimum_nights: 2,
+    number_of_reviews: 84, reviews_per_month: 2.3, calculated_host_listings_count: 1,
+    availability_365: 210, neighbourhood_group: "Manhattan", neighbourhood: "Midtown",
+  },
+  {
+    latitude: 40.6782, longitude: -73.9442, price: 55, minimum_nights: 1,
+    number_of_reviews: 210, reviews_per_month: 4.1, calculated_host_listings_count: 3,
+    availability_365: 300, neighbourhood_group: "Brooklyn", neighbourhood: "Bedford-Stuyvesant",
+  },
+  {
+    latitude: 40.7282, longitude: -73.7949, price: 38, minimum_nights: 3,
+    number_of_reviews: 12, reviews_per_month: 0.6, calculated_host_listings_count: 1,
+    availability_365: 90, neighbourhood_group: "Queens", neighbourhood: "Flushing",
+  },
+];
+let exampleIndex = 0;
+
+// ============================================================
+// FORM WIRING
+// ============================================================
+const form = document.getElementById("predictForm");
+const predictBtn = document.getElementById("predictBtn");
+const formError = document.getElementById("formError");
+const availabilityInput = document.getElementById("availability_365");
+const availabilityValue = document.getElementById("availabilityValue");
+const exampleBtn = document.getElementById("exampleBtn");
+const toggleDetailsBtn = document.getElementById("toggleDetailsBtn");
+const techDetailsPanel = document.getElementById("techDetailsPanel");
+
+availabilityInput.addEventListener("input", () => {
+  availabilityValue.textContent = availabilityInput.value;
+});
+
+exampleBtn.addEventListener("click", () => {
+  const data = EXAMPLES[exampleIndex % EXAMPLES.length];
+  exampleIndex++;
+  Object.entries(data).forEach(([key, value]) => {
+    const el = form.elements[key];
+    if (el) el.value = value;
+  });
+  availabilityValue.textContent = data.availability_365;
+  formError.textContent = "";
+});
+
+if (toggleDetailsBtn) {
+  toggleDetailsBtn.addEventListener("click", () => {
+    techDetailsPanel.classList.toggle("hidden");
+    const isHidden = techDetailsPanel.classList.contains("hidden");
+    toggleDetailsBtn.textContent = isHidden ? "View Technical Details" : "Hide Technical Details";
+  });
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  formError.textContent = "";
+
+  if (!form.reportValidity()) return;
+
+  const payload = collectPayload();
+  setLoading(true);
+
+  try {
+    const res = await fetch(PREDICT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      throw new Error(body?.detail ? formatDetail(body.detail) : `Request failed (${res.status}).`);
+    }
+
+    const result = await res.json();
+    renderResult(result);
+  } catch (err) {
+    formError.textContent = err.message?.includes("fetch")
+      ? "Can't reach the prediction API. Make sure the FastAPI server is running and reachable."
+      : err.message || "Something went wrong. Check the values and try again.";
+  } finally {
+    setLoading(false);
+  }
+});
+
+function collectPayload() {
+  const fd = new FormData(form);
+  return {
+    latitude: parseFloat(fd.get("latitude")),
+    longitude: parseFloat(fd.get("longitude")),
+    price: parseFloat(fd.get("price")),
+    minimum_nights: parseInt(fd.get("minimum_nights"), 10),
+    number_of_reviews: parseInt(fd.get("number_of_reviews"), 10),
+    reviews_per_month: parseFloat(fd.get("reviews_per_month")),
+    calculated_host_listings_count: parseInt(fd.get("calculated_host_listings_count"), 10),
+    availability_365: parseInt(fd.get("availability_365"), 10),
+    neighbourhood_group: fd.get("neighbourhood_group"),
+    neighbourhood: fd.get("neighbourhood"),
+  };
+}
+
+function formatDetail(detail) {
+  if (Array.isArray(detail)) {
+    return detail.map((d) => d.msg || JSON.stringify(d)).join(" ");
+  }
+  return String(detail);
+}
+
+function setLoading(isLoading) {
+  predictBtn.disabled = isLoading;
+  const icon = predictBtn.querySelector('.material-symbols-outlined');
+  if(isLoading) {
+      icon.textContent = 'hourglass_empty';
+      icon.classList.add('animate-spin');
+      predictBtn.classList.add('opacity-75');
+  } else {
+      icon.textContent = 'auto_awesome';
+      icon.classList.remove('animate-spin');
+      predictBtn.classList.remove('opacity-75');
+  }
+}
+
+// ============================================================
+// RESULT RENDERING
+// ============================================================
+const resultEmpty = document.getElementById("resultEmpty");
+const resultContent = document.getElementById("resultContent");
+const predictedName = document.getElementById("predictedName");
+const buildingsRow = document.getElementById("buildingsRow");
+const probList = document.getElementById("probList");
+
+function renderResult(result) {
+  const predicted = result.Predicted_room_type;
+  const probs = result.Probability; 
+
+  const paired = ROOM_CLASSES.map((cls, i) => ({
+    ...cls,
+    prob: typeof probs?.[i] === "number" ? probs[i] : 0,
+  }));
+
+  resultEmpty.hidden = true;
+  resultContent.hidden = false;
+  
+  // Fade in animation for content
+  resultContent.classList.remove('animate-fade-up');
+  void resultContent.offsetWidth; // trigger reflow
+  resultContent.classList.add('animate-fade-up');
+
+  predictedName.textContent = predicted;
+
+  buildBuildings(paired, predicted);
+  buildProbList(paired, predicted);
+}
+
+function buildBuildings(paired, predicted) {
+  buildingsRow.innerHTML = "";
+
+  paired.forEach((cls) => {
+    const col = document.createElement("div");
+    col.className = "building-col";
+
+    const b = document.createElement("div");
+    b.className = "building";
+    b.style.setProperty("--h", "18%");
+
+    const totalWindows = cls.rows * cls.cols;
+    const litCount = Math.round(totalWindows * cls.prob);
+
+    for (let i = 0; i < totalWindows; i++) {
+      const win = document.createElement("div");
+      win.className = "win";
+      b.appendChild(win);
+    }
+
+    const caption = document.createElement("div");
+    caption.className = "building-caption";
+    caption.textContent = cls.label;
+
+    col.appendChild(b);
+    col.appendChild(caption);
+    buildingsRow.appendChild(col);
+
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        b.style.setProperty("--h", cls.height);
+        const wins = b.querySelectorAll(".win");
+        wins.forEach((w, i) => {
+          if (i < litCount) {
+            setTimeout(() => w.classList.add("lit"), REDUCE_MOTION ? 0 : 60 * i + 300);
+          }
+        });
+        if (cls.key === predicted) {
+          // Glow using primary color
+          b.style.boxShadow = "0 -4px 20px -4px rgba(255, 255, 255, 0.2)";
+          b.style.borderColor = "rgba(255, 255, 255, 0.4)";
+        }
+      }, REDUCE_MOTION ? 0 : 80);
+    });
+  });
+}
+
+function buildProbList(paired, predicted) {
+  probList.innerHTML = "";
+  const sorted = [...paired].sort((a, b) => b.prob - a.prob);
+
+  sorted.forEach((cls) => {
+    const row = document.createElement("div");
+    row.className = "prob-row" + (cls.key === predicted ? " top" : "");
+
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = cls.label;
+
+    const value = document.createElement("span");
+    value.className = "value";
+    value.textContent = "0%";
+
+    const track = document.createElement("div");
+    track.className = "prob-track";
+    const fill = document.createElement("div");
+    fill.className = "prob-fill";
+    track.appendChild(fill);
+
+    row.appendChild(name);
+    row.appendChild(value);
+    row.appendChild(track);
+    probList.appendChild(row);
+
+    const pct = Math.round(cls.prob * 100);
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        fill.style.width = `${pct}%`;
+        animateCountMain(value, pct);
+      }, REDUCE_MOTION ? 0 : 150);
+    });
+  });
+}
+
+function animateCountMain(el, target) {
+  if (REDUCE_MOTION) {
+    el.textContent = `${target}%`;
+    return;
+  }
+  const duration = 700;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = `${Math.round(target * eased)}%`;
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ============================================================
+// API HEALTH CHECK
+// ============================================================
+async function checkApiStatus() {
+  const statusEl = document.getElementById("apiStatus");
+  try {
+    const res = await fetch(HEALTH_ENDPOINT, { method: "GET" });
+    if (res.ok) {
+      statusEl.classList.add("online");
+      statusEl.classList.remove("offline");
+      statusEl.lastChild.textContent = "API connected";
+    } else {
+      throw new Error("bad status");
+    }
+  } catch {
+    statusEl.classList.add("offline");
+    statusEl.classList.remove("online");
+    statusEl.lastChild.textContent = "API unreachable";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  checkApiStatus();
+});
+
+// ============================================================
+// BUILD LINE GUIDE LOGIC
+// ============================================================
+const STOPS = [
+  {
+    key:"ml",
+    label:"Model",
+    icon:"🧠",
+    color:"#a8cbe8", // secondary
+    line:"Line 1 — Understanding the Data",
+    title:"Machine Learning",
+    tagline:"Before anything talks to anything else, there has to be a brain. This is where we teach it.",
+    items:[
+      "Load the raw data and look around",
+      "Explore it — what patterns, what's messy, what's missing",
+      "Clean it up and engineer the features that matter",
+      "Split it into a training set and a test set",
+      "Try a few algorithms, compare how they perform",
+      "Pick the simplest one that does the job well",
+      "Test it honestly on data it has never seen",
+      "Freeze the finished model into a single reusable artifact"
+    ],
+    note:"By the end of this stop, we're not writing ML code anymore — we have one saved, trained brain, ready to be used."
+  },
+  {
+    key:"api",
+    label:"API",
+    icon:"⚡",
+    color:"#a8cbe8",
+    line:"Line 2 — Giving It a Voice",
+    title:"FastAPI",
+    tagline:"A trained model sitting on a laptop is useless to the world. FastAPI gives it a door anyone can knock on.",
+    items:[
+      "Spin up a lightweight web server",
+      "Load the saved model into memory, once, at startup",
+      "Define exactly what a valid request should look like",
+      "Open an endpoint that accepts listing details",
+      "Model predicts behind the scenes",
+      "Server hands back the answer as clean JSON"
+    ],
+    note:"This is the layer that turns \"a model in a folder\" into \"a service anything can talk to\" — a website, an app, another API."
+  },
+  {
+    key:"pkl",
+    label:"Pickle",
+    icon:"🧊",
+    color:"#a8cbe8",
+    line:"Line 3 — Freezing the Brain",
+    title:"Python Pickle / Joblib",
+    tagline:"Training takes minutes. Answering a question should take milliseconds. This is why.",
+    items:[
+      "We never want to retrain the model every single time it's needed",
+      "So the trained pipeline gets frozen into one portable file",
+      "That frozen file gets loaded instantly when the API starts",
+      "Same model, same preprocessing, identical result every time",
+      "This is the trick that makes predictions feel instant"
+    ],
+    note:"Think of it as a photograph of a fully-trained brain — no re-learning, just recall."
+  },
+  {
+    key:"ui",
+    label:"UI",
+    icon:"🎨",
+    color:"#a8cbe8",
+    line:"Line 4 — Giving It a Face",
+    title:"The Interface",
+    tagline:"People don't talk to APIs. They click buttons. So the model needs a face.",
+    items:[
+      "Build a simple interface with HTML, CSS and JavaScript",
+      "As ML engineers, our job isn't to be designers",
+      "So we lean on AI to design and build that interface for us",
+      "Then we just plug it into the API we already built"
+    ],
+    note:"Keep this stop short on purpose — the interesting engineering already happened at the first three stops."
+  },
+  {
+    key:"deploy",
+    label:"Deploy",
+    icon:"🚀",
+    color:"#a8cbe8",
+    line:"Line 5 — Going Live",
+    title:"Deployment on Render",
+    tagline:"Everything works on localhost. The last stop is making it work for everyone else, too.",
+    items:[
+      "There are two different pieces, so they get two different homes",
+      "The interface (HTML, CSS, JS) deploys as a Static Site",
+      "The API and model deploy as a Web Service",
+      "Connect the project, and Render builds and deploys it automatically",
+      "The result: a live link — not just something running on your laptop"
+    ],
+    note:"This is the moment the project stops being \"a notebook\" and becomes \"a product.\""
+  }
+];
+
+let currentBuildStop = 0;
+const checkedState = STOPS.map(s => new Array(s.items.length).fill(false));
+
+function animateCount(el, from, to, suffix){
+  const dur = 320;
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now-start)/dur);
+    const val = Math.round(from + (to-from)*p);
+    el.innerHTML = `<b>${val}</b>${suffix}`;
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function emitPuffs(){
+  const track = document.querySelector(".track");
+  const trainEl = document.getElementById("train");
+  let ticks = 0;
+  const iv = setInterval(()=>{
+    if(!trainEl) return clearInterval(iv);
+    const rect = trainEl.getBoundingClientRect();
+    const trackRect = track.getBoundingClientRect();
+    const puff = document.createElement("div");
+    puff.className = "puff";
+    puff.style.left = (rect.left - trackRect.left + rect.width/2)+"px";
+    track.appendChild(puff);
+    setTimeout(()=>puff.remove(), 650);
+    ticks++;
+    if(ticks>5) clearInterval(iv);
+  }, 90);
+}
+
+const stationsEl = document.getElementById("stations");
+if(stationsEl){
+STOPS.forEach((s, i)=>{
+  const btn = document.createElement("button");
+  btn.className = "station";
+  btn.innerHTML = `<span class="dot"></span><span class="label">${s.label}</span>`;
+  btn.addEventListener("click", ()=> goTo(i));
+  stationsEl.appendChild(btn);
+});
+}
+
+const stage = document.getElementById("stage");
+if(stage){
+STOPS.forEach((s, i)=>{
+  const card = document.createElement("div");
+  card.className = "stop-card glass-panel p-8 rounded-xl";
+  card.id = "card-"+i;
+
+  const itemsHtml = s.items.map((txt, j)=>`
+    <li data-i="${j}" style="animation-delay:${j*0.05}s">
+      <span class="check-box"><svg viewBox="0 0 16 16"><polyline points="3,8 6.5,12 13,4"/></svg></span>
+      <span class="text">${txt}</span>
+    </li>`).join("");
+
+  card.innerHTML = `
+    <div class="stop-head">
+      <span class="stop-num" style="background:${s.color}">${i+1} / ${STOPS.length}</span>
+      <span class="stop-line">${s.line}</span>
+    </div>
+    <h2 class="stop-title"><span class="icon-float">${s.icon}</span> ${s.title}</h2>
+    <p class="stop-tagline">${s.tagline}</p>
+    <ul class="checklist" id="list-${i}">${itemsHtml}</ul>
+    <div class="aside-note" id="note-${i}">💡 ${s.note}</div>
+    <div class="progress-pill" id="pill-${i}">0 / ${s.items.length} checked off</div>
+    <div class="stage-nav mt-8 pt-6 border-t border-outline-variant/20">
+      <button class="btn-ghost" id="prevBtn-${i}">← Previous stop</button>
+      <button class="btn-primary" id="nextBtn-${i}">Next stop →</button>
+    </div>
+  `;
+  stage.appendChild(card);
+});
+
+STOPS.forEach((s,i)=>{
+  const list = document.getElementById("list-"+i);
+  list.querySelectorAll("li").forEach(li=>{
+    li.addEventListener("click", ()=>{
+      const j = +li.dataset.i;
+      checkedState[i][j] = !checkedState[i][j];
+      li.classList.toggle("checked", checkedState[i][j]);
+      const checkedCount = checkedState[i].filter(Boolean).length;
+      const prevCount = checkedState[i][j] ? checkedCount - 1 : checkedCount + 1;
+      const pillEl = document.getElementById("pill-"+i);
+      animateCount(pillEl, prevCount, checkedCount, ` / ${s.items.length} checked off`);
+      if(checkedCount === s.items.length){
+        document.getElementById("note-"+i).classList.add("show");
+      }
+    });
+  });
+  document.getElementById("prevBtn-"+i).addEventListener("click", ()=> goTo(i-1));
+  document.getElementById("nextBtn-"+i).addEventListener("click", ()=>{
+    if(i === STOPS.length-1){ showTerminus(); } else { goTo(i+1); }
+  });
+});
+}
+
+function renderBuildGuide(){
+  if(!document.getElementById("terminus")) return;
+  document.getElementById("terminus").classList.remove("active");
+  document.querySelectorAll(".stop-card").forEach((c,idx)=>{
+    c.classList.toggle("active", idx===currentBuildStop);
+  });
+  document.querySelectorAll(".station").forEach((st,idx)=>{
+    st.classList.toggle("active", idx===currentBuildStop);
+    st.classList.toggle("done", idx<currentBuildStop);
+  });
+  document.getElementById("prevBtn-"+currentBuildStop) && (document.getElementById("prevBtn-"+currentBuildStop).disabled = currentBuildStop===0);
+
+  const pct = (currentBuildStop/(STOPS.length-1))*100;
+  document.getElementById("trackFill").style.width = pct+"%";
+  document.getElementById("train").style.left = pct+"%";
+  emitPuffs();
+}
+
+function goTo(i){
+  if(i<0) i=0;
+  if(i>STOPS.length-1) i=STOPS.length-1;
+  currentBuildStop = i;
+  renderBuildGuide();
+}
+
+function showTerminus(){
+  document.querySelectorAll(".stop-card").forEach(c=>c.classList.remove("active"));
+  document.querySelectorAll(".station").forEach(st=>st.classList.add("done"));
+  document.getElementById("trackFill").style.width = "100%";
+  document.getElementById("train").style.left = "100%";
+  document.getElementById("terminus").classList.add("active");
+  buildRecap();
+  
+  // scroll to terminus smoothly
+  document.getElementById("terminus").scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function restart(){
+  currentBuildStop = 0;
+  checkedState.forEach(arr=>arr.fill(false));
+  document.querySelectorAll(".checklist li").forEach(li=>li.classList.remove("checked"));
+  document.querySelectorAll(".aside-note").forEach(n=>n.classList.remove("show"));
+  STOPS.forEach((s,i)=>{
+    document.getElementById("pill-"+i).innerHTML = `0 / ${s.items.length} checked off`;
+  });
+  renderBuildGuide();
+  document.getElementById("buildLine").scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildRecap(){
+  const grid = document.getElementById("recapGrid");
+  grid.innerHTML = STOPS.map((s,i)=>`
+    <div class="recap-item flex flex-col items-center justify-center text-center" style="--stop-color:${s.color}; opacity:0; animation:pop-in .4s cubic-bezier(.34,1.56,.64,1) forwards; animation-delay:${0.15 + i*0.09}s">
+      <div class="ic">${s.icon}</div>
+      <div class="t mt-2">${s.title}</div>
+    </div>
+  `).join("");
+}
+
+// Initial render
+if(document.getElementById("terminus")) renderBuildGuide();
+
+</script>
+<footer class="mt-24 border-t border-outline-variant/20 glass-panel py-12 px-6 z-50 w-full relative !rounded-none !border-0 !border-t">
+<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+<!-- About Section -->
+<div class="flex flex-col gap-4">
+<div class="font-headline-md text-headline-md font-bold text-primary tracking-tight">NYC Predictor</div>
+<p class="text-body-md text-on-surface-variant max-w-xs">
+        Predicting the pulse of New York City's short-term rentals through data-driven insights and machine learning.
+      </p>
+</div>
+<!-- Quick Links -->
+<div class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Resources</h3>
+<nav class="flex flex-col gap-2 text-body-md text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">User Guide</a>
+<a class="hover:text-primary transition-colors" href="#">Model Methodology</a>
+<a class="hover:text-primary transition-colors" href="#">Data Sources</a>
+</nav>
+</div>
+<!-- Recruiter Contact -->
+<div class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Recruiter Contact</h3>
+<nav class="flex flex-col gap-2 text-body-md text-on-surface-variant">
+<a class="hover:text-primary transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-sm">link</span> LinkedIn Profile</a>
+<a class="hover:text-primary transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-sm">code</span> GitHub Repository</a>
+<a class="hover:text-primary transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-sm">mail</span> Email Me</a>
+</nav>
+</div>
+<!-- Social & Legal -->
+<div class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Connect</h3>
+<div class="flex gap-4 text-on-surface-variant">
+<a class="hover:text-secondary transition-colors" href="#"><span class="material-symbols-outlined">code</span></a>
+<a class="hover:text-secondary transition-colors" href="#"><span class="material-symbols-outlined">share</span></a>
+<a class="hover:text-secondary transition-colors" href="#"><span class="material-symbols-outlined">public</span></a>
+</div>
+<div class="mt-auto pt-4">
+<p class="text-xs text-on-surface-variant opacity-50">
+          © 2024 NYC Predictor. Made with <span class="text-primary">Stitch</span>.
+        </p>
+</div>
+</div>
+</div>
+</footer>
+
+
+
+
+</body></html>
