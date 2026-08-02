@@ -1,0 +1,211 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Room Type Predictor · Resume Edition</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
+</head>
+<body class="antialiased min-h-screen flex flex-col text-on-surface bg-background">
+<video autoplay="" class="fixed inset-0 w-full h-full object-cover z-[-2]" loop="" muted="" playsinline="">
+<source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4" type="video/mp4">
+</video>
+<canvas height="1024" id="glcanvas" width="1280"></canvas>
+<!-- TopAppBar -->
+<nav class="flex justify-between items-center px-gutter h-16 w-full z-50 glass-panel !border-0 !border-b !border-outline-variant/30 shadow-sm fixed top-0 !rounded-none">
+<div class="flex items-center gap-3">
+<div class="font-headline-md text-headline-md font-bold text-primary tracking-tight">NYC Predictor</div>
+
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+</div>
+</nav>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar -->
+<main class="flex-1 p-margin-mobile lg:p-margin-desktop overflow-y-auto mx-auto max-w-6xl w-full">
+<header class="mb-24 text-center max-w-2xl mx-auto opacity-0 animate-fade-up">
+<p class="font-label-caps text-label-caps text-secondary mb-4 tracking-widest uppercase">NYC Airbnb <span class="mx-2 opacity-50">·</span> Room Type Predictor</p>
+<h1 class="font-display-lg-mobile md:font-display-lg text-primary mb-6">What kind of stay<br>is this listing?</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-lg mx-auto text-on-surface mb-4">Enter a listing's details and the model will predict whether it's an
+        entire home, a private room, or a shared room — the way the city lights up differently
+        behind each kind of door.</p>
+<div class="group relative inline-block">
+<div class="glass-panel !rounded-full text-primary text-xs font-label-caps px-4 py-2 cursor-help flex items-center gap-2 shadow-sm hover:bg-white/5 transition-colors uppercase">
+<span class="material-symbols-outlined text-[16px]">integration_instructions</span> Technical Overview
+  </div>
+<div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max max-w-sm p-4 glass-panel text-left opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 text-xs font-body-md text-on-surface shadow-xl">
+<strong class="text-primary block mb-2 font-label-caps tracking-widest uppercase">Tech Stack</strong>
+<ul class="flex flex-col gap-2">
+<li class=""><strong class="text-on-surface">Backend:</strong> FastAPI, Scikit-learn (Random Forest)</li>
+<li class=""><strong class="text-on-surface">Frontend:</strong> HTML/JS, Tailwind CSS, Glassmorphism UI</li>
+<li class=""><strong class="text-on-surface">Graphics:</strong> Custom WebGL Fragment Shader</li>
+</ul>
+</div>
+</div>
+</header>
+<div class="grid lg:grid-cols-12 gap-gutter max-w-6xl mx-auto">
+<!-- FORM PANEL -->
+<section aria-labelledby="formTitle" class="lg:col-span-7 glass-panel p-6 lg:p-8 opacity-0 animate-fade-up stagger-1">
+<div class="flex justify-between items-center mb-8">
+<h2 class="font-headline-md text-headline-md text-primary" id="formTitle">Listing details</h2>
+<button class="btn-ghost" id="exampleBtn" type="button">Try an example</button>
+</div>
+<form class="flex flex-col gap-6" id="predictForm" novalidate="">
+<fieldset>
+<legend class="">Location</legend>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<label class="text-primary" for="latitude">Latitude</label>
+<input id="latitude" max="90" min="-90" name="latitude" placeholder="40.7128" required="" step="0.000001" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+<div>
+<label class="text-primary" for="longitude">Longitude</label>
+<input id="longitude" max="180" min="-180" name="longitude" placeholder="-74.0060" required="" step="0.000001" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="text-primary" for="neighbourhood_group">Borough</label>
+<select id="neighbourhood_group" name="neighbourhood_group" required="" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+<option disabled="" selected="" value="">Choose a borough</option>
+<option value="Manhattan">Manhattan</option>
+<option value="Brooklyn">Brooklyn</option>
+<option value="Queens">Queens</option>
+<option value="Bronx">Bronx</option>
+<option value="Staten Island">Staten Island</option>
+</select>
+</div>
+<div>
+<label class="text-primary" for="neighbourhood">Neighbourhood</label>
+<input id="neighbourhood" name="neighbourhood" placeholder="e.g. Williamsburg" required="" type="text" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+</fieldset>
+<fieldset>
+<legend class="">Pricing &amp; stay</legend>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<label class="text-primary" for="price">Price (USD)</label>
+<input id="price" min="1" name="price" placeholder="150" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+<div>
+<label class="text-primary" for="minimum_nights">Min nights</label>
+<input id="minimum_nights" max="365" min="1" name="minimum_nights" placeholder="3" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+<div>
+<label class="flex text-primary gap-2" for="availability_365">
+<span class="">Days available</span>
+<span class="text-primary"><span class="" id="availabilityValue">180</span> / 365</span>
+</label>
+<input class="mt-2" id="availability_365" max="365" min="0" name="availability_365" required="" step="1" type="range" value="180">
+</div>
+</fieldset>
+<fieldset class="border-b-0 mb-0 pb-0">
+<legend class="">Reviews &amp; host</legend>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div>
+<label class="text-primary" for="number_of_reviews">Total reviews</label>
+<input id="number_of_reviews" min="0" name="number_of_reviews" placeholder="24" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+<div>
+<label class="text-primary" for="reviews_per_month">Reviews/month</label>
+<input id="reviews_per_month" min="0" name="reviews_per_month" placeholder="1.2" required="" step="0.01" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</div>
+<div>
+<label class="text-primary" for="calculated_host_listings_count">Host listings</label>
+<input id="calculated_host_listings_count" min="0" name="calculated_host_listings_count" placeholder="1" required="" step="1" type="number" style="background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: rgba(255, 255, 255, 0.02) 0px 0px 10px inset; color: white; font-family: Inter, sans-serif;" class="glass-panel">
+</div>
+</fieldset>
+<div class="mt-4">
+<button class="btn-primary w-full" id="predictBtn" type="submit">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+<span class="">Predict room type</span>
+</button>
+<p class="text-error font-body-md text-sm mt-2 text-center h-4" id="formError" role="alert"></p>
+</div>
+</form>
+</section>
+<!-- RESULT PANEL -->
+<section aria-labelledby="resultTitle" aria-live="polite" class="lg:col-span-5 glass-panel p-6 lg:p-8 opacity-0 animate-fade-up stagger-2 flex flex-col">
+<div class="flex justify-between items-center mb-12">
+<h2 class="font-headline-md text-headline-md text-primary" id="resultTitle">Prediction</h2>
+<span class="api-status online text-on-surface" id="apiStatus"><span class="status-dot"></span>API connected</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center text-center text-on-surface-variant p-6" id="resultEmpty">
+<span class="material-symbols-outlined text-4xl mb-4 opacity-50">location_city</span>
+<p class="font-body-md text-on-surface">Fill in the listing details and predict to see the city light up.</p>
+</div>
+<div class="flex-1 flex flex-col" hidden="" id="resultContent">
+<div class="text-center mb-8">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest block mb-2">Most likely</span>
+<span class="font-display-lg-mobile text-primary block" id="predictedName">—</span>
+</div>
+<div class="flex justify-center gap-4 mb-10 h-[200px]" id="buildingsRow">
+<!-- built by JS -->
+</div>
+<div class="glass-panel !rounded-lg p-4 mb-4" id="probList">
+<!-- built by JS -->
+</div>
+<!-- View Technical Details Toggle -->
+<div class="mt-auto text-center">
+<button class="btn-ghost text-xs py-1 px-3 w-full" id="toggleDetailsBtn" type="button">View Technical Details</button>
+<div class="hidden mt-4 glass-panel p-4 text-left text-xs font-body-md text-on-surface-variant" id="techDetailsPanel">
+<p class="mb-2"><strong class="text-primary font-medium">Probability Distribution Logic:</strong> The underlying ML model processes location coords, pricing, availability, and host metrics via a pre-trained pipeline. The output probabilities represent the model's confidence for each class.</p>
+<p class=""><strong class="text-primary font-medium">Visual Mapping:</strong> The WebGL visualizer dynamically updates window light activation based on <code>prob * total_windows</code>, providing a 1:1 mapping of backend confidence to visual density.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- BUILD LINE SECTION -->
+</main>
+</div>
+<footer class="mt-24 border-t border-outline-variant/20 glass-panel py-12 px-6 z-50 w-full relative !rounded-none !border-0 !border-t">
+<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+<!-- About Section -->
+<div class="flex flex-col gap-4">
+<div class="font-headline-md text-headline-md font-bold text-primary tracking-tight">NYC Predictor</div>
+<p class="text-body-md text-on-surface-variant max-w-xs">
+        Predicting the pulse of New York City's short-term rentals through data-driven insights and machine learning.
+      </p>
+</div>
+<!-- Quick Links -->
+<div class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Resources</h3>
+<nav class="flex flex-col gap-2 text-body-md text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">User Guide</a>
+<a class="hover:text-primary transition-colors" href="#">Model Methodology</a>
+<a class="hover:text-primary transition-colors" href="#">Data Sources</a>
+</nav>
+</div>
+<!-- Recruiter Contact -->
+<div class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Recruiter Contact</h3>
+<nav class="flex flex-col gap-2 text-body-md text-on-surface-variant">
+<a class="hover:text-primary transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-sm">link</span> LinkedIn Profile</a>
+<a class="hover:text-primary transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-sm">code</span> GitHub Repository</a>
+<a class="hover:text-primary transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-sm">mail</span> Email Me</a>
+</nav>
+</div>
+<!-- Social & Legal -->
+<div class="flex flex-col gap-4">
+<h3 class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Connect</h3>
+<div class="flex gap-4 text-on-surface-variant">
+<a class="hover:text-secondary transition-colors" href="#"><span class="material-symbols-outlined">code</span></a>
+<a class="hover:text-secondary transition-colors" href="#"><span class="material-symbols-outlined">share</span></a>
+<a class="hover:text-secondary transition-colors" href="#"><span class="material-symbols-outlined">public</span></a>
+</div>
+<div class="mt-auto pt-4">
+<p class="text-xs text-on-surface-variant opacity-50">
+          © 2024 NYC Predictor. Made with <span class="text-primary">Stitch</span>.
+        </p>
+</div>
+</div>
+</div>
+</footer>
+<script src="script.js"></script>
+</body></html>

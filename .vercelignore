@@ -1,0 +1,10 @@
+# The backend and its model artifact live on Render, not on the static CDN.
+main.py
+Model_Pipeline.pkl
+requirements.txt
+runtime.txt
+
+# Not part of the deployed frontend.
+notebooks/
+docs/
+node_modules/
